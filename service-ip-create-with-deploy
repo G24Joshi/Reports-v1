@@ -1,0 +1,75 @@
+Q: This is for creating deployment and assigning service ip also NODEPORT.
+#---------------------------------------------------------------------------
+ABOUT ME: My name is Ganesh and I am from Uttarakhand.
+1. Create Deployment 
+
+root@new-cluster:~# kubectl create deploy myweb --image nginx --replicas=2 --dry-run -o yaml >myweb.yml
+root@new-cluster:~# kubectl create -f myweb.yml
+deployment.apps/myweb created
+root@new-cluster:~#
+
+2. Verify the deployment.
+
+root@new-cluster:~# kubectl get deploy myweb -o wide
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   SELECTOR
+myweb   2/2     2            2           27s   nginx        nginx    app=myweb
+root@new-cluster:~#
+
+3. login to the pods and write somthing in index.html
+
+- pod1.
+root@new-cluster:~# kubectl exec -it myweb-9794cbc77-2m9s2 /bin/bash
+root@myweb-9794cbc77-2m9s2:/# echo "<h1>I am India</h1>" > /usr/share/nginx/html/index.html
+root@myweb-9794cbc77-2m9s2:/# exit
+exit
+root@new-cluster:~#
+
+- pod2.
+root@new-cluster:~# kubectl exec -it myweb-9794cbc77-gfkjc /bin/bash
+root@myweb-9794cbc77-gfkjc:/# echo "<h1>I am Bharat</h1>" > /usr/share/nginx/html/index.html
+root@myweb-9794cbc77-gfkjc:/# exit
+exit
+root@new-cluster:~#
+
+4. create service ip.
+
+root@new-cluster:~# kubectl expose deploy myweb --port 8080 --target-port 80 --name=myweb-service --type=NodePort
+service/myweb-service exposed
+root@new-cluster:~# kubectl get service
+NAME             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP          8d
+myweb-service    NodePort    10.103.96.88     <none>        8080:30533/TCP   6s
+myweb2-service   NodePort    10.103.198.159   <none>        8080:30592/TCP   13m
+root@new-cluster:~#
+
+5. let's describe the service ip.
+root@new-cluster:~# kubectl describe service myweb-service
+Name:                     myweb-service
+Namespace:                default
+Labels:                   app=myweb
+Annotations:              <none>
+Selector:                 app=myweb
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.103.96.88
+IPs:                      10.103.96.88
+Port:                     <unset>  8080/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  30533/TCP
+Endpoints:                192.168.247.9:80,192.168.84.137:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+root@new-cluster:~#
+
+6. Testing time.
+
+Open any Browser and do
+
+node_ip:30533 or ClusterIP:30533
+
+
+
+
+
