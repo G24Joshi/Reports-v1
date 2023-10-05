@@ -68,6 +68,11 @@ root@new-cluster:~#
 Open any Browser and do
 
 node_ip:30533 or ClusterIP:30533
+-------------------------------------------------
+Node: if you are not getting the web page in point number 6. then go to your AWS account > Securty group > add new role "All traffic" with protocol "all". this is just for testing and in production you will have to only allow the port number.
+
+Thanks!!
+-------------------------------------------------
 
 
 
