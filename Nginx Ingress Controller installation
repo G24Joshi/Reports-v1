@@ -97,3 +97,18 @@ Q2. How to Configure Ingress Rules.
 1. Deploy New Website
 2. Expose Service IP for new Deployment.
 3. Configure ingress rules respective of new Service IP.
+Ans:
+1. Let's Deploy A new Website
+root@new-cluster:~# kubectl create deploy devopsfix --image=nginx
+deployment.apps/devopsfix created
+root@new-cluster:~# kubectl get po
+NAME                         READY   STATUS    RESTARTS   AGE
+devopsfix-5f85c587d5-k6hkc   1/1     Running   0          11s
+root@new-cluster:~# kubectl exec -it devopsfix-5f85c587d5-k6hkc /bin/bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+root@devopsfix-5f85c587d5-k6hkc:/# echo "<h1>Welcome Page of DevOps Fix</h1>" > /usr/share/nginx/html/index.html
+root@devopsfix-5f85c587d5-k6hkc:~# exit
+2. Let's Expose Service IP.
+root@new-cluster:~# kubectl expose deploy devopsfix --name devopsfix --port 8080 --target-port 80
+service/devopsfix exposed
+root@new-cluster:~#
