@@ -97,6 +97,7 @@ Q2. How to Configure Ingress Rules.
 1. Deploy New Website
 2. Expose Service IP for new Deployment.
 3. Configure ingress rules respective of new Service IP.
+4. Testing of Ingress Controller.
 Ans:
 1. Let's Deploy A new Website
 root@new-cluster:~# kubectl create deploy devopsfix --image=nginx
@@ -106,9 +107,58 @@ NAME                         READY   STATUS    RESTARTS   AGE
 devopsfix-5f85c587d5-k6hkc   1/1     Running   0          11s
 root@new-cluster:~# kubectl exec -it devopsfix-5f85c587d5-k6hkc /bin/bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
-root@devopsfix-5f85c587d5-k6hkc:/# echo "<h1>Welcome Page of DevOps Fix</h1>" > /usr/share/nginx/html/index.html
+root@devopsfix-5f85c587d5-k6hkc:/# echo "Welcome Page of DevOps Fix" > /usr/share/nginx/html/index.html
 root@devopsfix-5f85c587d5-k6hkc:~# exit
 2. Let's Expose Service IP.
 root@new-cluster:~# kubectl expose deploy devopsfix --name devopsfix --port 8080 --target-port 80
 service/devopsfix exposed
+root@new-cluster:~# kubectl get service
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+devopsfix    ClusterIP   10.101.28.120   <none>        8080/TCP   17m
+kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP    26d
+root@new-cluster:~# kubectl describe service devopsfix
+Name:              devopsfix
+Namespace:         default
+Labels:            app=devopsfix
+Annotations:       <none>
+Selector:          app=devopsfix
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.101.28.120
+IPs:               10.101.28.120
+Port:              <unset>  8080/TCP
+TargetPort:        80/TCP
+Endpoints:         192.168.84.162:80
+Session Affinity:  None
+Events:            <none>
+root@new-cluster:~#
+3. Let's Configure ingress rules respective of new service IP.
+root@new-cluster:~# vi ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devopsfixdemo
+spec:
+  rules:
+  - host: "devopsfixdemo.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: devopsfix
+            port:
+              number: 8080
+-------------------------------
+root@new-cluster:~# kubectl create -f ingress.yaml
+root@new-cluster:~# kubectl get ingress
+NAME            CLASS   HOSTS               ADDRESS   PORTS   AGE
+devopsfixdemo   nginx   devopsfixdemo.com             80      4m45s
+root@new-cluster:~#
+4. Testing of Ingress Controller.
+echo "172.31.28.102 devopsfixdemo.com" >>/etc/hosts      //we are doing this becuase we have not EBS Rightnow.
+root@new-cluster:~# curl devopsfixdemo.com
+Welcome Page of DevOps Fix          //See  we are getting the home page.
 root@new-cluster:~#
