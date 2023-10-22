@@ -1,0 +1,56 @@
+git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v3.3.1
+cd kubernetes-ingress/
+cd deployments/
+
+1. Configure RBAC
+
+kubectl apply -f common/ns-and-sa.yaml
+kubectl apply -f rbac/rbac.yaml
+kubectl apply -f rbac/ap-rbac.yaml
+kubectl apply -f rbac/apdos-rbac.yaml
+kubectl apply -f common/nginx-config.yaml
+kubectl apply -f common/ingress-class.yaml
+
+2. Create Custom Resources
+
+kubectl apply -f common/crds/k8s.nginx.org_virtualservers.yaml
+kubectl apply -f common/crds/k8s.nginx.org_virtualserverroutes.yaml
+kubectl apply -f common/crds/k8s.nginx.org_transportservers.yaml
+kubectl apply -f common/crds/k8s.nginx.org_policies.yaml
+kubectl apply -f common/crds/k8s.nginx.org_globalconfigurations.yaml
+kubectl apply -f common/crds/appprotect.f5.com_aplogconfs.yaml
+kubectl apply -f common/crds/appprotect.f5.com_appolicies.yaml
+kubectl apply -f common/crds/appprotect.f5.com_apusersigs.yaml
+kubectl apply -f common/crds/appprotectdos.f5.com_apdoslogconfs.yaml
+kubectl apply -f common/crds/appprotectdos.f5.com_apdospolicy.yaml
+kubectl apply -f common/crds/appprotectdos.f5.com_dosprotectedresources.yaml
+
+3. Let's Deploy
+
+cd deployment/
+kubectl create -f nginx-ingress.yaml
+kubectl get deploy -n nginx-ingress
+kubectl get pod -n nginx-ingress
+
+Note: Here you will se that pod has taken ip from the Claico switch so Now in order to expose this ingress controller deployment we have two options.
+1. either we can create a service ip and nodeport or
+2. we can directly edit our deployment with "hostNnetwork: true" so that this pod will take Node IP. 
+
+4. kubectl edit deploy -n nginx-ingress
+
+so now lets edit the nginx ingress deployment and add the "hostNnetwork: true" so that nginx pod will take the node ip that you can directly bind with the ELB (Elastic Load Balancer).
+---------
+    spec:
+      hostNnetwork: true     //add this line,  
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+---------
