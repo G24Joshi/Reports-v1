@@ -70,7 +70,7 @@ root@new-cluster:~#
 
 ---------
 FAQ:
-1. What if this nginx ingress pod get created in node-2 as pods are emortal.
+Q1. What if this nginx ingress pod get created in node-2 as pods are emortal.
 Ans: We can assign a node Selector.
 1. first give a label to your node-1.
 root@new-cluster:~# kubectl label node node-1 role=ingress
@@ -93,4 +93,7 @@ root@new-cluster:~# kubectl edit deploy nginx-ingress -n nginx-ingress
           valueFrom:
 ------------------------------
 Now we have assign nodeSelector so pod will be always created in Node-1.
-
+Q2. How to Configure Ingress Rules.
+1. Deploy New Website
+2. Expose Service IP for new Deployment.
+3. Configure ingress rules respective of new Service IP.
