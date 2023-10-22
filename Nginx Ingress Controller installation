@@ -43,7 +43,7 @@ Note: Here you will se that pod has taken ip from the Claico switch so Now in or
 1. either we can create a service ip and nodeport or
 2. we can directly edit our deployment with "hostNnetwork: true" so that this pod will take Node IP. 
 
-4. kubectl edit deploy -n nginx-ingress
+4. kubectl edit deploy -n nginx-ingress   //I am following Option 2.
 
 so now lets edit the nginx ingress deployment and add the "hostNnetwork: true" so that nginx pod will take the node ip that you can directly bind with the ELB (Elastic Load Balancer).
 ---------
