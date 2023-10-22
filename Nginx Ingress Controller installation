@@ -70,9 +70,18 @@ root@new-cluster:~#
 
 ---------
 FAQ:
-1. What if this nginx ingress pod get created in node-2.
+1. What if this nginx ingress pod get created in node-2 as pods are emortal.
+Ans: We can assign a node Selector.
+1. first give a label to your node-1.
+root@new-cluster:~# kubectl label node node-1 role=ingress
+root@new-cluster:~# kubectl get node --show-labels
+NAME          STATUS   ROLES           AGE   VERSION   LABELS
+new-cluster   Ready    control-plane   26d   v1.28.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=new-cluster,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+node-1        Ready    <none>          25d   v1.28.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=node-1,kubernetes.io/os=linux,role=ingress
+node-2        Ready    <none>          23d   v1.28.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=node-2,kubernetes.io/os=linux
+root@new-cluster:~# kubectl edit deploy nginx-ingress -n nginx-ingress
     spec:
-      nodeSelector:
+      nodeSelector:          //add these two lines 
             role: ingress
       automountServiceAccountToken: true
       containers:
