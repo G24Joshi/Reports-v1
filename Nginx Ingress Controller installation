@@ -30,7 +30,14 @@ kubectl apply -f common/crds/appprotectdos.f5.com_dosprotectedresources.yaml
 cd deployment/
 kubectl create -f nginx-ingress.yaml
 kubectl get deploy -n nginx-ingress
-kubectl get pod -n nginx-ingress
+kubectl get pod -n nginx-ingress -o wide
+
+root@new-cluster:~# kubectl get pod -n nginx-ingress -o wide
+NAME                             READY   STATUS    RESTARTS   AGE     IP              NODE     NOMINATED NODE   READINESS GATES
+nginx-ingress-77c5455c5b-cp6q4   1/1     Running   0          27m     192.168.13.64   node-1   <none>           <none>
+nginx-ingress-97cc58d9d-26bv7    0/1     terminating   0          4m18s   <none>          <none>   <none>           <none>
+root@new-cluster:~#
+
 
 Note: Here you will se that pod has taken ip from the Claico switch so Now in order to expose this ingress controller deployment we have two options.
 1. either we can create a service ip and nodeport or
@@ -53,4 +60,24 @@ so now lets edit the nginx ingress deployment and add the "hostNnetwork: true" s
               apiVersion: v1
               fieldPath: metadata.namespace
         - name: POD_NAME
+------------------------
+Now Pod has taken the Ip of Node-1 so yo can directoy map this with AWS ELB.
+root@new-cluster:~# kubectl get po -n nginx-ingress -o wide
+NAME                             READY   STATUS    RESTARTS   AGE     IP              NODE     NOMINATED NODE   READINESS GATES
+nginx-ingress-77c5455c5b-cp6q4   1/1     Running   0          25m     172.31.28.102   node-1   <none>           <none>
+nginx-ingress-97cc58d9d-26bv7    0/1     Pending   0          2m46s   <none>          <none>   <none>           <none>
+root@new-cluster:~#
+
 ---------
+FAQ:
+1. What if this nginx ingress pod get created in node-2.
+    spec:
+      nodeSelector:
+            role: ingress
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
